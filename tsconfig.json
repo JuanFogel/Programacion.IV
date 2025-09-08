@@ -7,5 +7,6 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["EJ 5/**/*.ts"]
+  "include": ["Trabajo Practico 1/EJ 5/**/*.ts"],
+  "exclude": ["dist"]
 }

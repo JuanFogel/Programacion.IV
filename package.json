@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p tsconfig.json",
+    "dev": "ts-node \"Trabajo Practico 1/EJ 5/index.ts\"",
+    "start": "node \"dist/Trabajo Practico 1/EJ 5/index.js\""
   },
   "repository": {
     "type": "git",
