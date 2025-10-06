@@ -98,3 +98,15 @@ curl http://localhost:3000/orders?status=cancelled
 - **Separación app/server**: `makeApp()` sin `listen()` para tests
 - **Validaciones Zod**: Edge validation + business rules
 - **Tests**: Unit tests para reglas de dominio, integration tests para HTTP contract
+
+| ID | Caso / Descripción | Precondición | Input | Acción | Resultado esperado | Test |
+|---|---|---|---|---|---|---|
+| CA1 | Health check retorna estado OK | Servidor funcionando | - | GET /health | Status 200, { status: 'ok' } | `health.test.ts → "GET /health returns ok"` |
+| CA2 | Crear pedido válido con múltiples items | - | `{ address: "Av. Siempre Viva 742", items: [{size: "M", toppings: ["olives", "mushrooms"]}, {size: "S", toppings: []}] }` | POST /orders | Status 201, order creado con precio total 2900 cents y 2 items | `orders.post.test.ts → "creates an order and returns 201 with total price"` |
+| ER1 | Validación falla con array de items vacío | - | `{ address: "short", items: [] }` | POST /orders | Status 422, errors definidos | `orders.post.test.ts → "returns 422 on invalid body (empty items)"` |
+| CA3 | Cálculo precio ítem pequeño sin toppings | - | size: "S", toppings: 0 | calculateItemPriceCents | 1000 cents | `order.test.ts → "calculates item price by size and toppings"` |
+| CA4 | Cálculo precio ítem mediano con 2 toppings | - | size: "M", toppings: 2 | calculateItemPriceCents | 1900 cents | `order.test.ts → "calculates item price by size and toppings"` |
+| CA5 | Cálculo precio ítem grande con 5 toppings | - | size: "L", toppings: 5 | calculateItemPriceCents | 3000 cents | `order.test.ts → "calculates item price by size and toppings"` |
+| CA6 | Suma total pedido con múltiples ítems | - | `[{size: "M", toppings: ["olives"]}, {size: "S", toppings: []}]` | calculateOrderTotalCents | 2700 cents | `order.test.ts → "sums total order price"` |
+| CA7 | Cancelación permitida para estado "created" | status: "created" | - | canCancel | true | `order.test.ts → "cannot cancel when delivered"` |
+| ER2 | Cancelación denegada para estado "delivered" | status: "delivered" | - | canCancel | false | `order.test.ts → "cannot cancel when delivered"` |
