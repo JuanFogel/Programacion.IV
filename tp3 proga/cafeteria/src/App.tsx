@@ -57,12 +57,17 @@ function App() {
           onRemoveItem={handleRemoveItem}
           onSubmitOrder={handleSubmitOrder}
           isLoading={isLoading}
-          message={message}
         />
+        {message && (
+      <div data-testid="message-container">
+        {message}
+      </div>
+    )}
       </div>
     </div>
   );
 }
 
 export default App;
+
 
