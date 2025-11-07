@@ -4,5 +4,5 @@
 
 ### UML Ejercicio 5:
 
-<img src="/Trabajo Practico 1/UML EJER5.png" alt="UML Ejercicio 3">
+<img src="/Trabajo Practico 1/EJ 5/EJER5.png" alt="UML Ejercicio 5">
 
