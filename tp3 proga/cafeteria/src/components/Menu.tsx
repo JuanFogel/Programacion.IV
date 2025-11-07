@@ -52,8 +52,13 @@ export function Menu({ onAddItem }: MenuProps) {
       <ul role="list">
         {products.map((product) => (
           <li key={product.id} role="listitem">
-            <span>{product.name} - ${product.price.toFixed(2)}</span>
-            <button onClick={() => onAddItem(product)}>Agregar</button>
+            <span>
+              <strong>{product.name}</strong>
+              <div style={{ fontSize: '0.9rem', color: '#5a67d8', fontWeight: '600' }}>
+                ${product.price.toFixed(2)}
+              </div>
+            </span>
+            <button className="btn-add" onClick={() => onAddItem(product)}>Agregar</button>
           </li>
         ))}
       </ul>
