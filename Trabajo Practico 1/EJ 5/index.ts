@@ -1,20 +1,22 @@
 import { Auto } from "./Auto";
 import { Moto } from "./Moto";
-import { Vehiculo } from "./Vehiculo";
 
-const miAuto = new Auto("Ford", "Focus", "Blanco");
-console.log(miAuto.cargarBateria());
-console.log(miAuto.arrancar());
-console.log(miAuto.detener());
+const tesla = new Auto("Tesla", "Model 3", 2024);
+const yamaha = new Moto("Yamaha", "FZ", 2023, 150);
+const ford = new Auto("Ford", "Focus", 2018);
 
-const miMoto = new Moto("Honda", "CRF", 250);
-console.log(miMoto.arrancar());
-console.log(miMoto.detener());
+console.log("\n=== INFO ===");
+console.log(tesla.obtenerInfo());
+console.log(ford.obtenerInfo());
+console.log(yamaha.obtenerInfo());
 
-const miVehiculoElectrico: Vehiculo = new Auto("Ford", "Mustang E", "Azul");
+console.log("\n=== AUTO ===");
+tesla.arrancar();
+tesla.cargarBateria();
+console.log("Nivel de bateria:", tesla.nivelBateria());
+tesla.frenar();
 
-if (miVehiculoElectrico instanceof Auto) {
-  console.log(miVehiculoElectrico.cargarBateria());
-  console.log(miVehiculoElectrico.arrancar());
-  console.log(miVehiculoElectrico.detener());
-}
+console.log("\n=== MOTO ===");
+yamaha.arrancar();
+yamaha.hacerWeelie();
+yamaha.frenar();
