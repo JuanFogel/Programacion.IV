@@ -3,14 +3,11 @@ const jwt = require('jsonwebtoken');
 const { db } = require('../config/database');
 
 // Mapa para manejar intentos fallidos (para delay + captcha)
-const failedLoginAttempts = new Map(); // key: IP, value: { failedCount }
-
-// Mapa para manejar ráfagas rápidas (para devolver 429)
-const loginBurstAttempts = new Map(); // key: IP, value: [timestamps]
-
+const failedLoginAttempts = new Map(); 
+const loginBurstAttempts = new Map(); 
 const BURST_WINDOW_MS = 1000;   // 1 segundo
 const BURST_MAX_ATTEMPTS = 5;   // más de 5 intentos en 1s => 429
-const MAX_FAILED_FOR_CAPTCHA = 3; // después de 3 fallos, exigir captcha
+const MAX_FAILED_FOR_CAPTCHA = 3; 
 
 const login = async (req, res) => {
   const { username, password, captcha } = req.body;
@@ -40,7 +37,6 @@ const login = async (req, res) => {
 
   // Si ya hubo varios intentos fallidos, exigir CAPTCHA
   if (state.failedCount >= MAX_FAILED_FOR_CAPTCHA && !captcha) {
-    // El test 3 espera status 400 y que el mensaje contenga "captcha"
     return res.status(400).json({
       error: 'Se requiere captcha válido para continuar'
     });
@@ -120,7 +116,7 @@ const verifyToken = (req, res) => {
   }
 };
 
-// VULNERABLE: Blind SQL Injection (se corrige en el test 08)
+
 const checkUsername = (req, res) => {
   const { username } = req.body;
 
@@ -129,7 +125,6 @@ const checkUsername = (req, res) => {
 
   db.query(query, (err, results) => {
     if (err) {
-      // VULNERABLE: Expone errores de SQL
       return res.status(500).json({ error: err.message });
     }
 

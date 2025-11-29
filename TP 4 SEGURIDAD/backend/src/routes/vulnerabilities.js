@@ -9,6 +9,8 @@ router.post('/ping', vulnerabilityController.ping);
 // CSRF - Transferencia
 router.post('/transfer', vulnerabilityController.transfer);
 
+router.get('/csrf-token', vulnerabilityController.getCsrfToken);
+
 // Local File Inclusion
 router.get('/file', vulnerabilityController.readFile);
 

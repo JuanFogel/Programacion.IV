@@ -27,7 +27,10 @@ app.use(session({
   secret: 'vulnerable-secret',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: { 
+    secure: false,
+    sameSite: 'strict'
+  }
 }));
 
 // Usar todas las rutas con prefijo /api
