@@ -14,7 +14,20 @@ const login = async (req, res) => {
   const ip = req.ip || req.connection?.remoteAddress || 'unknown';
   const now = Date.now();
 
-  // 1) RATE LIMITING POR RÁFAGA (para el test 1: ver algún 429)
+  // 1) ESTADO PARA DELAY + CAPTCHA (verificar PRIMERO)
+  let state = failedLoginAttempts.get(ip);
+  if (!state) {
+    state = { failedCount: 0 };
+  }
+
+  // Si ya hubo varios intentos fallidos, exigir CAPTCHA (ANTES del rate limiting)
+  if (state.failedCount >= MAX_FAILED_FOR_CAPTCHA && !captcha) {
+    return res.status(400).json({
+      error: 'Se requiere captcha válido para continuar'
+    });
+  }
+
+  // 2) RATE LIMITING POR RÁFAGA (después de verificar CAPTCHA)
   let burst = loginBurstAttempts.get(ip) || [];
 
   // Nos quedamos solo con los intentos del último segundo
@@ -26,19 +39,6 @@ const login = async (req, res) => {
   if (burst.length > BURST_MAX_ATTEMPTS) {
     return res.status(429).json({
       error: 'Demasiados intentos de login. Intente nuevamente más tarde.'
-    });
-  }
-
-  // 2) ESTADO PARA DELAY + CAPTCHA
-  let state = failedLoginAttempts.get(ip);
-  if (!state) {
-    state = { failedCount: 0 };
-  }
-
-  // Si ya hubo varios intentos fallidos, exigir CAPTCHA
-  if (state.failedCount >= MAX_FAILED_FOR_CAPTCHA && !captcha) {
-    return res.status(400).json({
-      error: 'Se requiere captcha válido para continuar'
     });
   }
 
@@ -117,19 +117,54 @@ const verifyToken = (req, res) => {
 };
 
 
+// Rate limiting específico para checkUsername
+const checkUsernameAttempts = new Map();
+const CHECK_USERNAME_WINDOW_MS = 60000; // 1 minuto
+const CHECK_USERNAME_MAX_ATTEMPTS = 20; // máximo 20 intentos por minuto
+
 const checkUsername = (req, res) => {
   const { username } = req.body;
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  const now = Date.now();
 
-  // VULNERABLE: SQL injection que permite inferir información
-  const query = `SELECT COUNT(*) as count FROM users WHERE username = '${username}'`;
+  // Rate limiting para prevenir ataques de enumeración
+  let attempts = checkUsernameAttempts.get(ip) || [];
+  attempts = attempts.filter(ts => now - ts < CHECK_USERNAME_WINDOW_MS);
+  
+  if (attempts.length >= CHECK_USERNAME_MAX_ATTEMPTS) {
+    return res.status(429).json({ error: 'Demasiados intentos. Intente más tarde.' });
+  }
+  
+  attempts.push(now);
+  checkUsernameAttempts.set(ip, attempts);
 
-  db.query(query, (err, results) => {
+  // Validación estricta de entrada
+  if (!username || typeof username !== 'string') {
+    return res.status(400).json({ error: 'Formato de usuario inválido' });
+  }
+
+  // Validar formato: solo letras, números y guión bajo, entre 3 y 20 caracteres
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+    // Devolver respuesta genérica sin revelar si el formato es inválido
+    return res.json({ exists: false });
+  }
+
+  // CORREGIDO: Usar consultas parametrizadas
+  const query = 'SELECT COUNT(*) as count FROM users WHERE username = ?';
+
+  db.query(query, [username], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      // No exponer detalles del error SQL - respuesta genérica
+      console.error('Error en checkUsername:', err.message);
+      return res.json({ exists: false });
     }
 
-    const exists = results[0].count > 0;
-    res.json({ exists });
+    // Agregar delay aleatorio para prevenir timing attacks
+    const delay = Math.floor(Math.random() * 100) + 50; // 50-150ms
+    setTimeout(() => {
+      const exists = results[0].count > 0;
+      res.json({ exists });
+    }, delay);
   });
 };
 
